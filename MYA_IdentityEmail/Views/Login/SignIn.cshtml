@@ -1,0 +1,119 @@
+﻿@model UserLoginViewModel
+@{
+    Layout = "_AuthLayout";
+    ViewData["Title"] = "Giriş Yap · Mailora";
+}
+
+<div class="auth-bg" aria-hidden="true"><span class="g1"></span><span class="g2"></span><span class="g3"></span></div>
+
+<main class="auth-page">
+    <div class="auth-card">
+
+        <partial name="_AuthBrand" />
+
+        <!-- =================================================================
+           LOGIN FORMU — projede: Login view'ı (Layout = "_AuthLayout")
+           Model → LoginViewModel (UserName, Password, RememberMe)
+           ================================================================= -->
+        <section class="auth-form-wrap">
+            <div class="login-form">
+
+                <div class="form-head">
+                    <span class="welcome-chip"><i class="bi bi-hand-wave"></i> Tekrar hoş geldiniz</span>
+                    <h1>Giriş Yap</h1>
+                    <p>Mailora hesabınıza giriş yaparak mesajlarınıza kaldığınız yerden devam edin.</p>
+                    <!-- ASP.NET: asp-controller="Register" asp-action="SignUp" (kendi controller/action adınla) -->
+                    <div class="switch-link">Hesabınız yok mu? <a asp-action="SignUp" asp-controller="Register">Kayıt Ol</a></div>
+                </div>
+
+                <!-- ===== SUNUCU MESAJLARI =====
+               Hepsi varsayılan olarak gizli. Projede controller'ın durumuna göre gösterilir.
+               Önizlemede görmek için adresin sonuna ?durum=hata | dogrulama | kilit | kayit ekle. -->
+                <!-- 1) Hatalı giriş / genel hatalar.
+                  Projede bu bloğun içine: <div asp-validation-summary="ModelOnly"></div>
+                  Controller: ModelState.AddModelError("", "Kullanıcı adı veya şifre hatalı.") -->
+                <div asp-validation-summary="ModelOnly">
+                    <div class="form-alert alert-danger-x" id="alertError" role="alert" hidden>
+                        <span class="ai"><i class="bi bi-exclamation-octagon"></i></span>
+                        <div><b>Giriş yapılamadı</b>Kullanıcı adı veya şifre hatalı.</div>
+                    </div>
+
+                    <!-- 2) E-posta doğrulanmamış (SignInResult.IsNotAllowed) -->
+                    <div class="form-alert alert-warning-x" id="alertConfirm" role="alert" hidden>
+                        <span class="ai"><i class="bi bi-envelope-exclamation"></i></span>
+                        <div>
+                            <b>E-posta adresiniz doğrulanmamış</b>
+                            Giriş yapabilmek için önce gelen kutunuzdaki doğrulama kodunu onaylayın.
+                            <!-- ASP.NET: doğrulama sayfasına giden bir link de olabilir -->
+                            <br><button type="button" class="alert-action" id="resendBtn">Doğrulama e-postasını tekrar gönder</button>
+                        </div>
+                    </div>
+
+                    <!-- 3) Hesap kilitlendi (SignInResult.IsLockedOut) -->
+                    <div class="form-alert alert-danger-x" id="alertLocked" role="alert" hidden>
+                        <span class="ai"><i class="bi bi-lock"></i></span>
+                        <div><b>Hesabınız geçici olarak kilitlendi</b>Çok fazla hatalı deneme yapıldı. Lütfen birkaç dakika sonra tekrar deneyin.</div>
+                    </div>
+
+                    <!-- 4) Kayıt / doğrulama sonrası yönlendirme (TempData ile) -->
+                    <div class="form-alert alert-success-x" id="alertRegistered" role="status" hidden>
+                        <span class="ai"><i class="bi bi-check2-circle"></i></span>
+                        <div><b>Hesabınız doğrulandı</b>Artık giriş yapabilirsiniz.</div>
+                    </div>
+                </div>
+                <!-- ASP.NET: method="post" asp-action="..." → anti-forgery token otomatik eklenir -->
+                <form id="loginForm" novalidate autocomplete="on" method="post">
+                    <div class="form-grid">
+
+                        <div class="field" data-field="userName">
+                            <label for="userName">Kullanıcı Adı</label>
+                            <div class="input-wrap">
+                                <i class="bi bi-at lead"></i>
+                                <!-- ASP.NET: asp-for="UserName" (id="userName" kalsın, JS buna bağlı) -->
+                                <input class="a-input" id="userName" asp-for="Identifier" type="text" placeholder="Kullanıcı adınız" autocomplete="username" maxlength="30" spellcheck="false" autocapitalize="none" required>
+                                <i class="bi bi-exclamation-circle-fill state err"></i>
+                            </div>
+                            <div class="msg" aria-live="polite"></div>
+                            <!-- ASP.NET: <span asp-validation-for="UserName" class="msg"></span> -->
+                        </div>
+
+                        <div class="field" data-field="password">
+                            <div class="label-row">
+                                <label for="password">Şifre</label>
+                                <!-- ASP.NET: şifre sıfırlama sayfası hazır olunca asp-action ile bağla -->
+                                <a href="#" class="forgot-link" id="forgotLink">Şifremi unuttum</a>
+                            </div>
+                            <div class="input-wrap">
+                                <i class="bi bi-lock lead"></i>
+                                <!-- ASP.NET: asp-for="Password" -->
+                                <input class="a-input has-eye" id="password" asp-for="Password" type="password" placeholder="Şifreniz" autocomplete="current-password" required>
+                                <i class="bi bi-exclamation-circle-fill state err"></i>
+                                <button type="button" class="eye-btn" data-eye="password" aria-label="Şifreyi göster" title="Şifreyi göster"><i class="bi bi-eye"></i></button>
+                            </div>
+                            <div class="caps"><i class="bi bi-capslock"></i> Caps Lock açık</div>
+                            <div class="msg" aria-live="polite"></div>
+                        </div>
+
+                        <div class="remember">
+                            <!-- ASP.NET: asp-for="RememberMe" (class ve id kalsın) -->
+                            <input type="checkbox" class="m-check" id="rememberMe" asp-for="RememberMe" value="true">
+                            <label for="rememberMe">Beni hatırla<small>Ortak kullanılan cihazlarda işaretlemeyin</small></label>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-primary-x" id="submitBtn">
+                        <span class="lbl">Giriş Yap</span><i class="bi bi-arrow-right"></i>
+                    </button>
+
+                    <div class="secure-note"><i class="bi bi-shield-check"></i> Bağlantınız şifreli ve güvenli.</div>
+                    <div class="form-foot">Hesabınız yok mu? <a href="#">Hemen kayıt olun</a></div>
+                </form>
+            </div>
+        </section>
+    </div>
+</main>
+
+@section Scripts {
+    <script src="~/js/login.js"></script>
+}
+

@@ -4,8 +4,7 @@ MAILORA — REGISTER (yalnızca frontend doğrulama ve simülasyon)
 Gerçek uygulamada: AccountController.Register (POST)
 → UserManager.CreateAsync(user, model.Password) → e-posta doğrulama
 ====================================================================== */
-const $ = (s, r = document) => r.querySelector(s);
-const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const { $, $$, toast, bindCapsLock, bindPasswordEyes } = window.MailoraCommon;
 
 const EMAIL_RE = /^[^\s@@<>()[\],;:"]+@@[^\s@@<>()[\],;:"]+\.[a-z]{2,}$/i;
 const TAKEN_USERNAMES = ['admin', 'mailora', 'destek', 'ahmetyilmaz', 'root', 'info'];  // temsili: sunucu kontrolü simülasyonu
@@ -30,14 +29,7 @@ const touched = new Set();
 let userCheck = { value: null, state: 'idle' };   // idle | checking | available | taken
 let userTimer = null;
 
-/* ---------- Toast ---------- */
-function toast(title, text = '', type = 'info', icon = 'bi-info-circle') {
-    const el = document.createElement('div');
-    el.className = `m-toast ${type}`;
-    el.innerHTML = `<span class="ti"><i class="bi ${icon}"></i></span><span><b>${title}</b>${text}</span>`;
-    $('#toastStack').appendChild(el);
-    setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 250); }, 3600);
-}
+
 
 /* ---------- Alan doğrulama ---------- */
 function validate(key) {
@@ -144,23 +136,10 @@ KEYS.forEach(key => {
         touched.add(key);
         paint(key);
     });
-    if (el.type === 'password') {
-        const caps = $('.caps', el.closest('.field'));
-        el.addEventListener('keyup', e => caps.classList.toggle('show', !!(e.getModifierState && e.getModifierState('CapsLock'))));
-        el.addEventListener('blur', () => caps.classList.remove('show'));
-    }
+    if (el.type === 'password') bindCapsLock(el);
 });
 
-// Şifre göster / gizle
-$$('[data-eye]').forEach(btn => btn.addEventListener('click', () => {
-    const input = $('#' + btn.dataset.eye), show = input.type === 'password';
-    input.type = show ? 'text' : 'password';
-    $('i', btn).className = show ? 'bi bi-eye-slash' : 'bi bi-eye';
-    btn.title = show ? 'Şifreyi gizle' : 'Şifreyi göster';
-    btn.setAttribute('aria-label', btn.title);
-    input.focus({ preventScroll: true });
-    const len = input.value.length; try { input.setSelectionRange(len, len); } catch (e) { /* yok say */ }
-}));
+bindPasswordEyes();
 
 // KVKK onay kutusu
 const terms = $('#acceptTerms');
@@ -297,3 +276,6 @@ function showSuccess(user) {
 /* ---------- Başlangıç ---------- */
 renderRules();
 updatePasswordUi();
+
+
+
